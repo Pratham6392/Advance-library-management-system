@@ -52,7 +52,7 @@ PORT=3000
 - `npm run lint` - Run linting
 
 ## API DOCS:
-I'll create a Postman collection documenting all the API endpoints for our Library Management System. I have  provided  a JSON file that you can import into Postman.
+I have created a Postman collection documenting all the API endpoints for our Library Management System. I have  provided  a JSON file that you can import into Postman.
 
 
 
