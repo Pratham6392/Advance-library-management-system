@@ -1,5 +1,5 @@
 import { prisma } from '../index';
-import { redisService } from './redisService';
+import { redisService } from './redis.service';
 import { CACHE_EXPIRATION } from '../config/constants';
 
 export const analyticsService = {
@@ -43,7 +43,7 @@ export const analyticsService = {
 
     const borrowCount = await prisma.borrowedBook.count({
       where: {
-        borrowDate: {
+        dueDate: {
           gte: startDate,
           lte: endDate
         }
