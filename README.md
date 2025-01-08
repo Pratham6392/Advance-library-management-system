@@ -7,7 +7,7 @@ A comprehensive backend system for managing library operations including books, 
 - Node.js
 - TypeScript
 - Express
-- Supabase (PostgreSQL)
+- Database (PostgreSQL)
 
 ## Project Structure
 

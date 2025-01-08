@@ -1,3 +1,4 @@
+import { number } from 'joi';
 import prisma from '../config/database';
 
 export class BorrowService {
@@ -35,7 +36,8 @@ export class BorrowService {
       prisma.borrowedBook.create({
         data: {
           userId,
-          bookId
+          bookId,
+          dueDate: new Date(new Date().setDate(new Date().getDate() + 14)) // setting due date to 14 days from now
         }
       }),
       prisma.book.update({
@@ -76,7 +78,7 @@ export class BorrowService {
         where: { id: borrowedBookId },
         data: {
           returnDate,
-          fineAmount
+            fineAmount
         }
       }),
       prisma.book.update({
