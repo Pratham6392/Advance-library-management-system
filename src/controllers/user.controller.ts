@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { UserService } from '../services/user.service';
+import { UserService } from '../services/';
 import { updateUserSchema } from '../models/validation/user.schema';
 
 export class UserController {
