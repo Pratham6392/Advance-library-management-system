@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import { AnalyticsService } from '../services/analytics.service';
-import { dateRangeSchema, monthlyReportSchema } from '../models/validation/analytics.schema';
+import { dateRangeSchema, monthlyReportSchema } from '../models/validation/analystics.schema';
 
 export class AnalyticsController {
   static async getMostBorrowedBooks(req: Request, res: Response) {
