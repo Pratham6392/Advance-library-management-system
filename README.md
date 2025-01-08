@@ -30,7 +30,16 @@ A comprehensive backend system for managing library operations including books, 
 
 2. Copy `.env.example` to `.env` and update the values.
 
-3. Run development server:
+
+4.  .env.example will have:
+```bash
+DATABASE_URL="your-db-url"
+JWT_SECRET="your secret"
+NODE_ENV=development
+PORT=3000
+   ```
+
+4. Run development server:
    ```bash
    npm run dev
    ```
