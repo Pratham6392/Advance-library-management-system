@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  app:
+    image: node:18 # Use a Node.js image since your app likely uses Node.js
+    container_name: app_container
+    environment:
+      DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/library"
+    depends_on:
+      - postgres
+    networks:
+      - default
+    volumes:
+      - .:/usr/src/app # Mount your current directory to the container
+    working_dir: /usr/src/app # Set the working directory inside the container
+    command: sh -c "npm install && npx prisma migrate dev --name init && npm start"
+    ports:
+      - "3000:3000" # Expose the app's port to your local machine
+
+  postgres:
+    image: postgres:latest
+    container_name: library_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: library
+    ports:
+      - "5432:5432"
+    networks:
+      - default
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  default:
+    name: my_app_network

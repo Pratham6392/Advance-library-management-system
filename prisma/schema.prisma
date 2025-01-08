@@ -1,0 +1,141 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  password      String
+  firstName     String
+  lastName      String
+  role          UserRole       @default(MEMBER)
+  isVerified    Boolean        @default(false)
+  borrowedBooks BorrowedBook[] // Limited to 3 active borrows via application logic
+  transactions  Transaction[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  deletedAt     DateTime?      // Soft delete
+
+  @@map("users")
+}
+
+model Book {
+  id              String         @id @default(uuid())
+  isbn            String         @unique // Enforcing unique ISBN
+  title           String
+  description     String?
+  totalCopies     Int            @default(1)
+  availableCopies Int            @default(1)
+  authors         AuthorsOnBooks[]
+  categories      CategoriesOnBooks[]
+  borrowedBooks   BorrowedBook[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  deletedAt       DateTime?      // Soft delete
+
+  @@map("books")
+}
+
+model BorrowedBook {
+  id         String     @id @default(uuid())
+  userId     String
+  bookId     String
+  borrowDate DateTime   @default(now())
+  dueDate    DateTime   @default(dbgenerated("NOW() + interval '14 days'")) // 14-day borrow period
+  returnDate DateTime?
+  fineAmount Float      @default(0) // $1 per day after dueDate
+  user       User       @relation(fields: [userId], references: [id])
+  book       Book       @relation(fields: [bookId], references: [id])
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  @@map("borrowed_books")
+}
+
+model Author {
+  id        String           @id @default(uuid())
+  name      String
+  books     AuthorsOnBooks[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@map("authors")
+}
+
+model Category {
+  id        String             @id @default(uuid())
+  name      String             @unique
+  books     CategoriesOnBooks[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@map("categories")
+}
+
+model AuthorsOnBooks {
+  bookId    String
+  authorId  String
+  book      Book    @relation(fields: [bookId], references: [id])
+  author    Author  @relation(fields: [authorId], references: [id])
+
+  @@id([bookId, authorId])
+  @@map("authors_books")
+}
+
+model CategoriesOnBooks {
+  bookId     String
+  categoryId String
+  book       Book     @relation(fields: [bookId], references: [id])
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  @@id([bookId, categoryId])
+  @@map("categories_books")
+}
+
+model Transaction {
+  id        String          @id @default(uuid())
+  userId    String
+  amount    Float
+  type      TransactionType
+  status    PaymentStatus   @default(PENDING)
+  user      User           @relation(fields: [userId], references: [id])
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("transactions")
+}
+
+enum UserRole {
+  ADMIN
+  LIBRARIAN
+  MEMBER
+}
+
+enum TransactionType {
+  FINE
+  PAYMENT
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+
+
+// Key changes made to enforce constraints:
+
+// Added @unique to ISBN field
+// Added totalCopies and availableCopies for book copy management
+// Set default 14-day borrow period using dbgenerated
+// Added fineAmount to track $1/day fines
+// Maintained isVerified flag for users
+// Implemented soft deletes via deletedAt fields
+// Many-to-many relationships for books with authors and categories
+// The 3-book limit will be enforced in the service layer logic
