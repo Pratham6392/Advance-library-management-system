@@ -13,8 +13,25 @@ services:
       - "5432:5432"
     volumes:
       - ./migrations/1_db_init.up.sql:/docker-entrypoint-initdb.d/init.sql
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - my_network
 
+  redis:
+    image: redis:alpine
+    container_name: my_redis_container
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - my_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
 networks:
   my_network:
+    driver: bridge

@@ -1,77 +1,74 @@
-import prisma from '../config/database';
+import { prisma } from '../index';
+import { redisService } from './redis.service';
+import { CACHE_EXPIRATION } from '../config/constants';
 
-export class BookService {
-  static async createBook(data: any) {
-    return prisma.book.create({
-      data: {
-        ...data,
-        authors: {
-          create: data.authors.map((authorId: string) => ({
-            authorId
-          }))
-        },
-        categories: {
-          create: data.categories.map((categoryId: string) => ({
-            categoryId
-          }))
-        }
-      },
-      include: {
-        authors: true,
-        categories: true
-      }
-    });
-  }
+export const bookService = {
+  async addBook(data: any) {
+    const book = await prisma.book.create({ data });
+    await redisService.del('books:all');
+    return book;
+  },
 
-  static async updateBook(id: string, data: any) {
-    return prisma.book.update({
-      where: { id },
-      data: {
-        ...data,
-        authors: data.authors ? {
-          deleteMany: {},
-          create: data.authors.map((authorId: string) => ({
-            authorId
-          }))
-        } : undefined,
-        categories: data.categories ? {
-          deleteMany: {},
-          create: data.categories.map((categoryId: string) => ({
-            categoryId
-          }))
-        } : undefined
-      },
-      include: {
-        authors: true,
-        categories: true
-      }
-    });
-  }
+  async updateBook(id: number, data: any) {
+    const book = await prisma.book.update({ where: { id }, data });
+    await redisService.del(`book:${id}`);
+    await redisService.del('books:all');
+    return book;
+  },
 
-  static async deleteBook(id: string) {
-    return prisma.book.update({
+  async deleteBook(id: number) {
+    const book = await prisma.book.update({
       where: { id },
       data: { deletedAt: new Date() }
     });
-  }
+    await redisService.del(`book:${id}`);
+    await redisService.del('books:all');
+    return book;
+  },
 
-  static async searchBooks(filters: any) {
-    const where: any = {
-      deletedAt: null
-    };
+  async getBookByIsbn(isbn: string) {
+    const cacheKey = `book:isbn:${isbn}`;
+    const cachedBook = await redisService.get(cacheKey);
+    
+    if (cachedBook) {
+      return JSON.parse(cachedBook);
+    }
 
-    if (filters.isbn) where.isbn = filters.isbn;
-    if (filters.title) where.title = { contains: filters.title, mode: 'insensitive' };
-    if (filters.category) where.categories = { some: { categoryId: filters.category } };
-    if (filters.author) where.authors = { some: { authorId: filters.author } };
-    if (filters.onlyAvailable) where.availableCopies = { gt: 0 };
+    const book = await prisma.book.findUnique({ where: { isbn } });
+    
+    if (book) {
+      await redisService.set(cacheKey, JSON.stringify(book), CACHE_EXPIRATION);
+    }
 
-    return prisma.book.findMany({
-      where,
+    return book;
+  },
+
+  async searchBooks(query: string) {
+    const cacheKey = `books:search:${query}`;
+    const cachedResults = await redisService.get(cacheKey);
+
+    if (cachedResults) {
+      return JSON.parse(cachedResults);
+    }
+
+    const books = await prisma.book.findMany({
+      where: {
+        OR: [
+          { title: { contains: query, mode: 'insensitive' } },
+          { authors: { some: { author: { name: { contains: query, mode: 'insensitive' } } } } },
+          { categories: { some: { category: { name: { contains: query, mode: 'insensitive' } } } } }
+        ],
+        deletedAt: null
+      },
       include: {
-        authors: true,
-        categories: true
+        authors: { include: { author: true } },
+        categories: { include: { category: true } }
       }
     });
+
+    await redisService.set(cacheKey, JSON.stringify(books), CACHE_EXPIRATION);
+
+    return books;
   }
-}
+};
+

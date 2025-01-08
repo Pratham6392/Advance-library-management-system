@@ -96,7 +96,7 @@ export class AnalyticsService {
         where: {
           borrowedBooks: {
             some: {
-              borrowDate: {
+              dueDate : {
                 gte: startDate,
                 lte: endDate
               }
