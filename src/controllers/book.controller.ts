@@ -9,10 +9,10 @@ export class BookController {
       const book = await BookService.createBook(validatedData);
       res.status(201).json(book);
     } catch (error) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
+      if ((error as any).name === 'ZodError') {
+        return res.status(400).json({ error: (error as any).errors });
       }
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 
@@ -23,10 +23,10 @@ export class BookController {
       const book = await BookService.updateBook(id, validatedData);
       res.json(book);
     } catch (error) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
+      if ((error as any).name === 'ZodError') {
+        return res.status(400).json({ error: (error as any).errors });
       }
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 
@@ -36,7 +36,7 @@ export class BookController {
       await BookService.deleteBook(id);
       res.status(204).send();
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 
@@ -46,10 +46,10 @@ export class BookController {
       const books = await BookService.searchBooks(filters);
       res.json(books);
     } catch (error) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
+      if ((error as any).name === 'ZodError') {
+        return res.status(400).json({ error: (error as any).errors });
       }
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 }

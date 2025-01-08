@@ -9,7 +9,7 @@ export class UserController {
       const user = await UserService.getUserDetails(id);
       res.json(user);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 
@@ -20,10 +20,10 @@ export class UserController {
       const user = await UserService.updateUser(id, validatedData);
       res.json(user);
     } catch (error) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
+      if ((error as any).name === 'ZodError') {
+        return res.status(400).json({ error: (error as any).errors });
       }
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 
@@ -33,7 +33,7 @@ export class UserController {
       const borrowings = await UserService.getUserBorrowings(id);
       res.json(borrowings);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 
@@ -43,7 +43,7 @@ export class UserController {
       await UserService.disableUser(id);
       res.status(204).send();
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 }

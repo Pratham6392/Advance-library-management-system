@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+import { Request, Response } from 'express';
 
 dotenv.config();
 
@@ -8,7 +9,7 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 
-app.get('/', (req, res) => {
+app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Library Management System API' });
 });
 

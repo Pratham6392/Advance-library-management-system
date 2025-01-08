@@ -5,11 +5,11 @@ export class AnalyticsService {
     startDate?: string; 
     endDate?: string; 
   }) {
-    const dateFilter = {
-      borrowDate: {
-        gte: startDate ? new Date(startDate) : undefined,
-        lte: endDate ? new Date(endDate) : undefined
-      }
+    const dateFilter: any = {
+      AND: [
+        startDate ? { borrowDate: { gte: new Date(startDate) } } : {},
+        endDate ? { borrowDate: { lte: new Date(endDate) } } : {}
+      ]
     };
 
     const borrowings = await prisma.borrowedBook.groupBy({
@@ -59,7 +59,7 @@ export class AnalyticsService {
       // Total borrowings
       prisma.borrowedBook.count({
         where: {
-          borrowDate: {
+          dueDate: {
             gte: startDate,
             lte: endDate
           }

@@ -9,7 +9,7 @@ export class BorrowController {
       const userId = req.user!.id;
       const result = await BorrowService.borrowBook(userId, validatedData.bookId);
       res.status(201).json(result);
-    } catch (error) {
+    } catch (error: any) {
       if (error.name === 'ZodError') {
         return res.status(400).json({ error: error.errors });
       }
@@ -22,7 +22,7 @@ export class BorrowController {
       const validatedData = returnBookSchema.parse(req.body);
       const result = await BorrowService.returnBook(validatedData.borrowedBookId);
       res.json(result);
-    } catch (error) {
+    } catch (error: any) {
       if (error.name === 'ZodError') {
         return res.status(400).json({ error: error.errors });
       }

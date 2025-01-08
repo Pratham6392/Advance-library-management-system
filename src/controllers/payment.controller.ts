@@ -10,10 +10,10 @@ export class PaymentController {
       const payment = await PaymentService.createPayment(userId, validatedData);
       res.status(201).json(payment);
     } catch (error) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
+      if ((error as any).name === 'ZodError') {
+        return res.status(400).json({ error: (error as any).errors });
       }
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 
@@ -23,7 +23,7 @@ export class PaymentController {
       const invoice = await PaymentService.generateInvoice(transactionId);
       res.json(invoice);
     } catch (error) {
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as Error).message });
     }
   }
 }

@@ -9,10 +9,10 @@ export class AnalyticsController {
       const stats = await AnalyticsService.getMostBorrowedBooks(validatedData);
       res.json(stats);
     } catch (error) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
+      if ((error as any).name === 'ZodError') {
+        return res.status(400).json({ error: (error as any).errors });
       }
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as any).message });
     }
   }
 
@@ -25,10 +25,10 @@ export class AnalyticsController {
       );
       res.json(report);
     } catch (error) {
-      if (error.name === 'ZodError') {
-        return res.status(400).json({ error: error.errors });
+      if ((error as any).name === 'ZodError') {
+        return res.status(400).json({ error: (error as any).errors });
       }
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: (error as Error).message });
     }
   }
 }
