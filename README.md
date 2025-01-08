@@ -1,6 +1,7 @@
 # Library Management System
 
 A comprehensive backend system for managing library operations including books, users, and borrowing activities.
+This is a RESTful API for a Library Management System built with Node.js, Express, TypeScript, Prisma ORM, and Redis for caching.
 
 ## Tech Stack
 
@@ -8,6 +9,23 @@ A comprehensive backend system for managing library operations including books, 
 - TypeScript
 - Express
 - Database (PostgreSQL)
+
+  ## Features
+
+- User authentication (register, login, email verification)
+- Book management (add, edit, delete, search)
+- Borrowing and returning books
+- Fine calculation and payment
+- User management
+- Analytics (most borrowed books, monthly usage reports)
+- Role-based access control (Admin and Member roles)
+- Redis caching for improved performance
+
+## Prerequisites
+
+- Node.js (v14 or later)
+- PostgreSQL
+- Docker and Docker Compose
 
 ## Project Structure
 
