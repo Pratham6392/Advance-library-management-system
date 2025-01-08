@@ -1,133 +1,98 @@
-import prisma from '../config/database';
+import { prisma } from '../index';
+import { redisService } from './redisService';
+import { CACHE_EXPIRATION } from '../config/constants';
 
-export class AnalyticsService {
-  static async getMostBorrowedBooks({ startDate, endDate }: { 
-    startDate?: string; 
-    endDate?: string; 
-  }) {
-    const dateFilter: any = {
-      AND: [
-        startDate ? { borrowDate: { gte: new Date(startDate) } } : {},
-        endDate ? { borrowDate: { lte: new Date(endDate) } } : {}
-      ]
-    };
+export const analyticsService = {
+  async getMostBorrowedBooks(limit = 10) {
+    const cacheKey = `analytics:most-borrowed:${limit}`;
+    const cachedResults = await redisService.get(cacheKey);
 
-    const borrowings = await prisma.borrowedBook.groupBy({
-      by: ['bookId'],
-      where: dateFilter,
-      _count: {
-        bookId: true
-      },
-      orderBy: {
-        _count: {
-          bookId: 'desc'
-        }
-      },
-      take: 10
-    });
+    if (cachedResults) {
+      return JSON.parse(cachedResults);
+    }
 
-    const bookIds = borrowings.map(b => b.bookId);
     const books = await prisma.book.findMany({
-      where: {
-        id: {
-          in: bookIds
+      take: limit,
+      orderBy: {
+        borrowedBooks: {
+          _count: 'desc'
         }
       },
       include: {
-        authors: true,
-        categories: true
+        _count: {
+          select: { borrowedBooks: true }
+        }
       }
     });
 
-    return borrowings.map(borrowing => ({
-      book: books.find(b => b.id === borrowing.bookId),
-      borrowCount: borrowing._count.bookId
-    }));
-  }
+    await redisService.set(cacheKey, JSON.stringify(books), CACHE_EXPIRATION);
 
-  static async generateMonthlyReport(year: number, month: number) {
+    return books;
+  },
+
+  async getMonthlyUsageReport(year: number, month: number) {
+    const cacheKey = `analytics:monthly-report:${year}-${month}`;
+    const cachedReport = await redisService.get(cacheKey);
+
+    if (cachedReport) {
+      return JSON.parse(cachedReport);
+    }
+
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
 
-    const [
-      totalBorrowings,
-      totalReturns,
-      totalFines,
-      totalActiveUsers,
-      overdueBorrowings
-    ] = await Promise.all([
-      // Total borrowings
-      prisma.borrowedBook.count({
-        where: {
-          dueDate: {
-            gte: startDate,
-            lte: endDate
-          }
+    const borrowCount = await prisma.borrowedBook.count({
+      where: {
+        borrowDate: {
+          gte: startDate,
+          lte: endDate
         }
-      }),
-
-      // Total returns
-      prisma.borrowedBook.count({
-        where: {
-          returnDate: {
-            gte: startDate,
-            lte: endDate
-          }
-        }
-      }),
-
-      // Total fines collected
-      prisma.transaction.aggregate({
-        where: {
-          type: 'FINE',
-          status: 'COMPLETED',
-          createdAt: {
-            gte: startDate,
-            lte: endDate
-          }
-        },
-        _sum: {
-          amount: true
-        }
-      }),
-
-      // Active users (users who borrowed at least one book)
-      prisma.user.count({
-        where: {
-          borrowedBooks: {
-            some: {
-              dueDate : {
-                gte: startDate,
-                lte: endDate
-              }
-            }
-          }
-        }
-      }),
-
-      // Overdue borrowings
-      prisma.borrowedBook.count({
-        where: {
-          dueDate: {
-            lt: endDate
-          },
-          returnDate: null
-        }
-      })
-    ]);
-
-    return {
-      period: {
-        year,
-        month
-      },
-      statistics: {
-        totalBorrowings,
-        totalReturns,
-        totalFinesCollected: totalFines._sum.amount || 0,
-        totalActiveUsers,
-        overdueBorrowings
       }
+    });
+
+    const returnCount = await prisma.borrowedBook.count({
+      where: {
+        returnDate: {
+          gte: startDate,
+          lte: endDate
+        }
+      }
+    });
+
+    const newUsers = await prisma.user.count({
+      where: {
+        createdAt: {
+          gte: startDate,
+          lte: endDate
+        }
+      }
+    });
+
+    const totalFines = await prisma.transaction.aggregate({
+      where: {
+        type: 'FINE',
+        createdAt: {
+          gte: startDate,
+          lte: endDate
+        }
+      },
+      _sum: {
+        amount: true
+      }
+    });
+
+    const report = {
+      year,
+      month,
+      borrowCount,
+      returnCount,
+      newUsers,
+      totalFines: totalFines._sum.amount || 0
     };
+
+    await redisService.set(cacheKey, JSON.stringify(report), CACHE_EXPIRATION);
+
+    return report;
   }
-}
+};
+

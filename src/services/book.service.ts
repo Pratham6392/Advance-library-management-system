@@ -9,14 +9,14 @@ export const bookService = {
     return book;
   },
 
-  async updateBook(id: number, data: any) {
+  async updateBook(id: string, data: any) {
     const book = await prisma.book.update({ where: { id }, data });
     await redisService.del(`book:${id}`);
     await redisService.del('books:all');
     return book;
   },
 
-  async deleteBook(id: number) {
+  async deleteBook(id: string) {
     const book = await prisma.book.update({
       where: { id },
       data: { deletedAt: new Date() }
