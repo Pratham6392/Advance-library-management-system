@@ -12,8 +12,9 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./migrations/1_db_init.up.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./migrations/1_db_init.up.sql:/docker-entrypoint-initdb.d/1_db_init.up.sql
       - postgres_data:/var/lib/postgresql/data
+
     networks:
       - my_network
 
