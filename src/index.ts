@@ -8,6 +8,7 @@ import rateLimit from 'express-rate-limit';
 import Redis from 'ioredis';
 import { REDIS_URL } from './config/constants';
 import { schedulerService } from './services/scheduler.service';
+import { websocketService } from "./services/websocket.service"
 
 dotenv.config();
 
@@ -30,9 +31,10 @@ app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   schedulerService.startReturnReminderScheduler();
+  websocketService.initialize(server);
 });
 
 export { prisma, redis };

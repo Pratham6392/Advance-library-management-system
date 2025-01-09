@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Notification Demo</title>
+    <script src="https://cdn.socket.io/4.3.2/socket.io.min.js"></script>
+</head>
+<body>
+    <h1>WebSocket Notification Demo</h1>
+    <div id="notifications"></div>
+
+    <script>
+        const token = 'YOUR_JWT_TOKEN_HERE'; // Replace with a valid JWT token
+        const socket = io('http://localhost:3000', {
+            query: { token }
+        });
+
+        socket.on('connect', () => {
+            console.log('Connected to WebSocket server');
+        });
+
+        socket.on('notification', (notification) => {
+            console.log('Received notification:', notification);
+            const notificationsDiv = document.getElementById('notifications');
+            const notificationElement = document.createElement('p');
+            notificationElement.textContent = `${notification.type}: ${notification.message}`;
+            notificationsDiv.appendChild(notificationElement);
+        });
+
+        socket.on('connect_error', (error) => {
+            console.error('Connection error:', error);
+        });
+    </script>
+</body>
+</html>
+
