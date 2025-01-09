@@ -7,6 +7,7 @@ import { requestLogger } from "./middlewares/requestLogger"
 import rateLimit from 'express-rate-limit';
 import Redis from 'ioredis';
 import { REDIS_URL } from './config/constants';
+import { schedulerService } from './services/scheduler.service';
 
 dotenv.config();
 
@@ -31,6 +32,7 @@ const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  schedulerService.startReturnReminderScheduler();
 });
 
 export { prisma, redis };
