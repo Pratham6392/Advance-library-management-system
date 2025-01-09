@@ -20,7 +20,8 @@ This is a RESTful API for a Library Management System built with Node.js, Expres
 - Analytics (most borrowed books, monthly usage reports)
 - Role-based access control (Admin and Member roles)
 - Redis caching for improved performance
--  Automated email reminders for book return deadlines
+- Automated email reminders for book return deadlines
+- Real-time notifications using WebSockets
 
 ## Prerequisites
 
@@ -125,5 +126,5 @@ This collection includes all the API endpoints we've implemented, organized into
 
 6. Analytics
 
-1. Most Borrowed Books
-2. Monthly Usage Report
+- Most Borrowed Books
+- Monthly Usage Report
